@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        maven 'M2_HOME' // Remplace par le nom exact configuré (ex. 'maven')
+        maven 'maven-3.8' // ← Remplace par le nom exact dans Jenkins
     }
     stages {
         stage('Git Checkout') {
@@ -17,7 +17,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh './mvn test'
+                sh 'mvn test'
             }
         }
         stage('Package') {
@@ -25,7 +25,6 @@ pipeline {
                 sh 'mvn package'
             }
         }
-    
     }
     post {
         success {
