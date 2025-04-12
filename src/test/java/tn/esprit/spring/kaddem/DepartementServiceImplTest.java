@@ -24,18 +24,14 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 public class DepartementServiceImplTest {
 
-    @InjectMocks
+
     @Autowired
     private DepartementServiceImpl departementService;
 
     @Mock
     private DepartementRepository departementRepository;
 
-    @BeforeEach
-    public void setUp() {
-        // Initialise les mocks manuellement (nécessaire avec SpringBootTest)
-        MockitoAnnotations.openMocks(this);
-    }
+
 
     @Test
     @Order(1)
