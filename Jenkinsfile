@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        maven 'maven-3.9.8' // ← Remplace par le nom exact dans Jenkins
+        maven 'M2_HOME' // ← Remplace par le nom exact dans Jenkins
     }
     stages {
         stage('Git Checkout') {
