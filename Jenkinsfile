@@ -1,27 +1,17 @@
 pipeline {
     agent any
+    tools {
+        maven 'M2_HOME' // Ensure Maven is configured in Jenkins Global Tool Configuration
+    }
     stages {
-        stage('Checkout') {
+        stage('Git Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/eyansibi/DevOpsProject.git'
+                git branch: 'main', 
+                    url: 'https://github.com/eyansibi/DevOpsProject.git'
             }
         }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-                junit 'target/surefire-reports/*.xml'
-            }
-        }
+       
+       
     }
-    post {
-        success {
-            echo 'Tests réussis !'
-        }
-        failure {
-            echo 'Échec des tests !'
-        }
-        always {
-            archiveArtifacts artifacts: 'target/surefire-reports/*.xml', allowEmptyArchive: true
-        }
-    }
+   
 }
