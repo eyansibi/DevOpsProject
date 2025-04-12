@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        maven 'M2_HOME' // Remplace par le nom exact configuré dans Jenkins (ex. 'maven' si corrigé)
+        maven 'M2_HOME' // Remplace par le nom exact configuré (ex. 'maven')
     }
     stages {
         stage('Git Checkout') {
@@ -10,41 +10,23 @@ pipeline {
                     url: 'https://github.com/eyansibi/DevOpsProject.git'
             }
         }
-
         stage('Compile Stage') {
             steps {
                 sh 'mvn clean compile'
             }
         }
-
         stage('Test') {
             steps {
                 sh 'mvn test'
                 junit 'target/surefire-reports/*.xml'
             }
         }
-
-        stage('MVN SONARQUBE') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                        sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dmaven.test.skip=true"
-                    }
-                }
-            }
-        }
-
         stage('Package') {
             steps {
                 sh 'mvn package'
             }
         }
-
-        stage('Deploy') {
-            steps {
-                sh 'cp target/*.jar /path/to/deploy' // Ajuste le chemin selon ton environnement (ex. serveur Tomcat)
-            }
-        }
+    
     }
     post {
         success {
