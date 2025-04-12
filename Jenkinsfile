@@ -3,7 +3,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/eyansibi/DevOpsProject.git'
+                // Utilise la branche main au lieu de master
+                git branch: 'main', url: 'https://github.com/eyansibi/DevOpsProject.git'
             }
         }
         stage('Test') {
