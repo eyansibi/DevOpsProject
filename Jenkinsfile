@@ -1,12 +1,25 @@
 pipeline {
     agent any
+
+    tools { 
+        jdk 'JAVA_HOME' 
+        maven 'M2_HOME' // Assure-toi que ces noms sont définis dans Jenkins
+    }
+
     stages {
-        stage('Checkout') {
+        stage('GIT') {
             steps {
-                // Utilise la branche main au lieu de master
-                git branch: 'main', url: 'https://github.com/eyansibi/DevOpsProject.git'
+                git branch: 'main',
+                    url: 'https://github.com/eyansibi/AtelierDevops.git'
             }
         }
+
+        stage('Compile Stage') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+
         stage('Test') {
             steps {
                 sh 'mvn test'
@@ -14,12 +27,13 @@ pipeline {
             }
         }
     }
+
     post {
         success {
-            echo 'Tests réussis !'
+            echo 'Build, tests et analyse SonarQube réussis !'
         }
         failure {
-            echo 'Échec des tests !'
+            echo 'Échec du build, des tests ou de l\'analyse SonarQube !'
         }
         always {
             archiveArtifacts artifacts: 'target/surefire-reports/*.xml', allowEmptyArchive: true
