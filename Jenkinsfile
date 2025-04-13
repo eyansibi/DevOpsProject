@@ -4,8 +4,8 @@ pipeline {
         JAVA_HOME = tool name: 'JAVA_HOME', type: 'jdk'
         M2_HOME = tool name: 'M2_HOME', type: 'maven'
         PATH = "${JAVA_HOME}/bin:${M2_HOME}/bin:${PATH}"
-        NEXUS_REPO_URL = "http://127.0.0.1:8081/repository/maven-releases/"
-        MAVEN_SETTINGS = "/usr/share/maven/conf/settings.xml"
+       NEXUS_REPO_URL = "http://192.167.33.10:8081/repository/maven-snapshots/"
+        MAVEN_SETTINGS = "/usr/share/maven/conf/settings.xml" // settings.xml contenant user/password
     }
     stages {
         stage('Git Checkout') {
@@ -28,6 +28,25 @@ pipeline {
                 sh 'mvn clean compile'
             }
         }
+        stage('Deploy to Nexus') {
+            steps {
+                script {
+                    try {
+                        echo "Déploiement vers Nexus en utilisant ${MAVEN_SETTINGS}"
+
+                        sh """
+                            mvn deploy \
+                                --settings ${MAVEN_SETTINGS} \
+                                -DskipTests \
+                                -DaltDeploymentRepository=nexus-snapshots::default::${NEXUS_REPO_URL}
+                        """
+                    } catch (Exception e) {
+                        echo "Échec du déploiement vers Nexus: ${e.message}"
+                        error "Le déploiement a échoué. Vérifiez le fichier settings.xml et la configuration Nexus."
+                    }
+                }
+            }
+        }
         stage('Test') {
             steps {
                 sh 'mvn test'
@@ -48,28 +67,13 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Nexus') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', 
-                                                      usernameVariable: 'NEXUS_USERNAME', 
-                                                      passwordVariable: 'NEXUS_PASSWORD')]) {
-                        try {
-                            sh """
-                                mvn deploy \
-                                    --settings ${MAVEN_SETTINGS} \
-                                    -DskipTests \
-                                    -Dnexus.username=$NEXUS_USERNAME \
-                                    -Dnexus.password=$NEXUS_PASSWORD \
-                                    -DaltDeploymentRepository=nexus-releases::default::${NEXUS_REPO_URL}
-                            """
-                        } catch (Exception e) {
-                            echo "Deployment to Nexus failed: ${e.message}"
-                            throw e
-                        }
-                    }
-                }
-            }
+    }
+    post {
+        failure {
+            echo "Le pipeline a échoué. Vérifiez les logs pour plus de détails."
+        }
+        success {
+            echo "Le pipeline a réussi !"
         }
     }
 }

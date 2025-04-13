@@ -10,7 +10,7 @@
     </parent>
     <groupId>tn.esprit.spring</groupId>
     <artifactId>kaddem</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.1-SNAPSHOT</version>
     <name>kaddem</name>
     <description>kaddem</description>
     <properties>
@@ -62,9 +62,14 @@
     <distributionManagement>
         <repository>
             <id>deploymentRepo</id>
-            <name>Nexus Repository</name>
-            <url>http://192.167.33.10:8081/repository/maven-snapshots/</url>
+            <name>Nexus Releases</name>
+            <url>http://localhost:8081/repository/maven-releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>deploymentRepo</id>
+            <name>Nexus Snapshots</name>
+            <url>http://localhost:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
     <build>
         <plugins>
@@ -85,6 +90,7 @@
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.9.1.2184</version>
             </plugin>
+
         </plugins>
     </build>
 
