@@ -9,24 +9,27 @@ pipeline {
 
     stages {
         stage('Start MySQL') {
-            steps {
-                echo '🔧 Starting MySQL Docker container...'
-                sh '''
-                    docker run -d --name mysql-test \
-                      -e MYSQL_ROOT_PASSWORD=root \
-                      -e MYSQL_DATABASE=kaddem \
-                      -p 3306:3306 \
-                      mysql:8
+    steps {
+        echo '🔧 Starting MySQL Docker container...'
+        sh '''
+            echo "🧹 Checking for existing MySQL container..."
+            docker rm -f mysql-test || true
 
-                    echo "⏳ Waiting for MySQL to be ready..."
-                    for i in {1..20}; do
-                      docker exec mysql-test mysqladmin ping -h localhost -uroot -proot --silent && break
-                      echo "⌛ Still waiting..."
-                      sleep 2
-                    done
-                '''
-            }
-        }
+            docker run -d --name mysql-test \
+              -e MYSQL_ROOT_PASSWORD=root \
+              -e MYSQL_DATABASE=kaddem \
+              -p 3306:3306 \
+              mysql:8
+
+            echo "⏳ Waiting for MySQL to be ready..."
+            for i in {1..20}; do
+              docker exec mysql-test mysqladmin ping -h localhost -uroot -proot --silent && break
+              echo "⌛ Still waiting..."
+              sleep 2
+            done
+        '''
+    }
+}
 
         stage('Clone Repository') {
             steps {
