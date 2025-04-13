@@ -1,13 +1,16 @@
 pipeline {
     agent any
-    tools {
-        maven 'M2_HOME' // Remplace par le nom exact configuré dans Jenkins (ex. 'maven' si corrigé)
+
+    environment {
+        JAVA_HOME = tool name: 'JAVA_HOME', type: 'jdk'
+        M2_HOME = tool name: 'M2_HOME', type: 'maven'
+        PATH = "${JAVA_HOME}/bin:${M2_HOME}/bin:${PATH}"
     }
+
     stages {
-        stage('Git Checkout') {
+        stage('GIT') {
             steps {
-                git branch: 'main', 
-                    url: 'https://github.com/eyansibi/DevOpsProject.git'
+                git branch: 'main', url: 'https://github.com/eyansibi/DevOpsProject.git'
             }
         }
 
@@ -17,44 +20,61 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Test Stage') {
             steps {
                 sh 'mvn test'
-                junit 'target/surefire-reports/*.xml'
             }
         }
 
-        stage('MVN SONARQUBE') {
+        stage('Maven Install') {
             steps {
-                script {
-                    withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                        sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN} -Dmaven.test.skip=true"
-                    }
-                }
+                sh 'mvn install'
             }
         }
 
-        stage('Package') {
-            steps {
-                sh 'mvn package'
-            }
-        }
+// stage('MVN SONARQUBE') {
+//     steps {
+//         withSonarQubeEnv('sq') {
+//             sh '''
+//                 mvn clean compile
+//                 mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
+//             '''
+//         }
+//     }
+// }
 
-        stage('Deploy') {
-            steps {
-                sh 'cp target/*.jar /path/to/deploy' // Ajuste le chemin selon ton environnement (ex. serveur Tomcat)
-            }
-        }
-    }
-    post {
-        success {
-            echo 'Build, tests, analyse SonarQube et déploiement réussis !'
-        }
-        failure {
-            echo 'Échec du build, des tests, de l\'analyse SonarQube ou du déploiement !'
-        }
-        always {
-            archiveArtifacts artifacts: 'target/surefire-reports/*.xml, target/*.jar', allowEmptyArchive: true
-        }
+
+        // stage('Deploy to Nexus') {
+        //     steps {
+        //         echo 'Deploying to Nexus Repository'
+        //         sh 'mvn deploy -Dmaven.test.skip=true'
+        //     }
+        // }
+
+        // stage('Nexus Deployment') {
+        //     steps {
+        //         script {
+        //             def artifactExists = sh(
+        //                 script: '''
+        //                     curl -s -o /dev/null -w "%{http_code}" -u admin:admin "http://192.167.33.10:8081/repository/maven-public/tn/esprit/spring/kaddem/0.0.1-SNAPSHOT/kaddem-0.0.1-20250413.001931-1.jar"
+        //                 ''',
+        //                 returnStdout: true
+        //             ).trim()
+
+        //             if (artifactExists != '200') {
+        //                 echo 'Artifact not found. Deploying to Nexus...'
+        //                 sh 'mvn deploy -Dmaven.test.skip=true'
+        //             } else {
+        //                 echo 'Artifact already exists on Nexus; skipping deployment.'
+        //             }
+        //         }
+        //     }
+        // }
+
+        // stage('docker image Stage') {
+        //     steps {
+        //         sh 'docker build -t timesheet:1.0.0 .'
+        //     }
+        // }
     }
 }
