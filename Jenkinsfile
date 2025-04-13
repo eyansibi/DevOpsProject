@@ -13,7 +13,7 @@ pipeline {
                 echo 'Starting MySQL Docker container...'
                 sh '''
                     docker run -d --rm --name mysql-test \
-                      -e MYSQL_ROOT_PASSWORD=root\
+                      -e MYSQL_ROOT_PASSWORD=root \
                       -e MYSQL_DATABASE=kaddem \
                       -p 3306:3306 \
                       mysql:8
