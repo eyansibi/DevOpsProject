@@ -52,6 +52,28 @@ pipeline {
         //         }
         //     }
         // }
+        
+        // stage('Test') {
+        //     steps {
+        //         sh 'mvn test'
+        //     }
+        // }
+        stage('Install') {
+            steps {
+                sh 'mvn install'
+            }
+        }
+        // stage('MVN SONARQUBE') {
+        //     steps {
+        //         withSonarQubeEnv('sq') {
+        //             sh '''
+        //                 mvn clean compile
+        //                 mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
+        //             '''
+        //         }
+        //     }
+        // }
+
         stage('Docker Login') {
             steps {
                 sh 'echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin'
@@ -64,24 +86,30 @@ pipeline {
                 sh "docker tag ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ${DOCKER_IMAGE_NAME}:latest"
             }
         }
-        stage('Test') {
+        stage('Push Docker Image to DockerHub') {
             steps {
-                sh 'mvn test'
+                sh "docker push ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
+                sh "docker push ${DOCKER_IMAGE_NAME}:latest"
             }
         }
-        stage('Install') {
+
+        stage('Deploy with Docker Compose') {
             steps {
-                sh 'mvn install'
-            }
-        }
-        stage('MVN SONARQUBE') {
-            steps {
-                withSonarQubeEnv('sq') {
-                    sh '''
-                        mvn clean compile
-                        mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
-                    '''
+                script {
+                    sh """
+                    sed -i 's|image: eyansibi/eyansibidevops4twin2 :.*|image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}|' docker-compose.yml
+                    """
+
+                    sh 'docker-compose down'
+                    sh 'docker-compose up -d'
                 }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh 'docker-compose down'
+                sh 'docker system prune -f'
             }
         }
     }
