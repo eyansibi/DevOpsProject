@@ -4,7 +4,7 @@ pipeline {
         JAVA_HOME = tool name: 'JAVA_HOME', type: 'jdk'
         M2_HOME = tool name: 'M2_HOME', type: 'maven'
         PATH = "${JAVA_HOME}/bin:${M2_HOME}/bin:${PATH}"
-        NEXUS_REPO_URL = "http://127.0.0.1:8081/repository/maven-releases/"
+        NEXUS_REPO_URL = "http://127.0.0.1:8081/repository/maven-snapshots/"
         MAVEN_SETTINGS = "/usr/share/maven/conf/settings.xml"
     }
     stages {
