@@ -4,7 +4,9 @@ pipeline {
         JAVA_HOME = tool name: 'JAVA_HOME', type: 'jdk'
         M2_HOME = tool name: 'M2_HOME', type: 'maven'
         PATH = "${JAVA_HOME}/bin:${M2_HOME}/bin:${PATH}"
-        NEXUS_REPO_URL = "http://127.0.0.1:8081/repository/maven-snapshots/"
+        NEXUS_REPO_URL = "http://http://192.167.33.10:8081/repository/maven-releases/"
+        NEXUS_USERNAME = credentials('nexus-username')
+        NEXUS_PASSWORD = credentials('nexus-password')
         MAVEN_SETTINGS = "/usr/share/maven/conf/settings.xml"
     }
     stages {
@@ -28,29 +30,39 @@ pipeline {
                 sh 'mvn clean compile'
             }
         }
-          stage('Deploy to Nexus') {
+    //       stage('Deploy to Nexus') {
+    //         steps {
+    //             script {
+    //                 withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', 
+    //                                                   usernameVariable: 'NEXUS_USERNAME', 
+    //                                                   passwordVariable: 'NEXUS_PASSWORD')]) {
+    //                     try {
+    //                         echo "Déploiement vers Nexus avec l'utilisateur: ${NEXUS_USERNAME}"
+
+    //                         sh """
+    //                             mvn deploy \
+    //                                 --settings ${MAVEN_SETTINGS} \
+    //                                 -DskipTests \
+    //                                 -DaltDeploymentRepository=nexus-snapshots::default::${NEXUS_REPO_URL}
+    //                         """
+    //                     } catch (Exception e) {
+    //                         echo "Échec du déploiement vers Nexus: ${e.message}"
+    //                         error "Le déploiement a échoué. Vérifiez les credentials, settings.xml et la configuration Nexus."
+    //                     }
+    //                 }
+    //             }
+    //         }
+    // }
+         stage('Deploy to Nexus') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', 
-                                                      usernameVariable: 'NEXUS_USERNAME', 
-                                                      passwordVariable: 'NEXUS_PASSWORD')]) {
-                        try {
-                            echo "Déploiement vers Nexus avec l'utilisateur: ${NEXUS_USERNAME}"
-
-                            sh """
-                                mvn deploy \
-                                    --settings ${MAVEN_SETTINGS} \
-                                    -DskipTests \
-                                    -DaltDeploymentRepository=nexus-snapshots::default::${NEXUS_REPO_URL}
-                            """
-                        } catch (Exception e) {
-                            echo "Échec du déploiement vers Nexus: ${e.message}"
-                            error "Le déploiement a échoué. Vérifiez les credentials, settings.xml et la configuration Nexus."
-                        }
-                    }
+                    // Deploy to Nexus via Maven with authentication
+                    sh """
+                    mvn deploy -DskipTests -DnexusUsername=${NEXUS_USERNAME} -DnexusPassword=${NEXUS_PASSWORD}
+                    """
                 }
             }
-    }
+        }
         stage('Test') {
             steps {
                 sh 'mvn test'
