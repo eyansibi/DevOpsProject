@@ -49,18 +49,26 @@ pipeline {
             }
         }
         stage('Deploy to Nexus') {
-            steps {
-                script {
-                    try {
-                        sh '''
-                            mvn deploy --settings ${MAVEN_SETTINGS} -DskipTests
-                        '''
-                    } catch (Exception e) {
-                        echo "Deployment to Nexus failed: ${e.message}"
-                        throw e 
-                    }
+    steps {
+        script {
+            withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', 
+                                              usernameVariable: 'NEXUS_USERNAME', 
+                                              passwordVariable: 'NEXUS_PASSWORD')]) {
+                try {
+                    sh """
+                        mvn deploy \
+                            --settings ${MAVEN_SETTINGS} \
+                            -DskipTests \
+                            -Dnexus.username=$NEXUS_USERNAME \
+                            -Dnexus.password=$NEXUS_PASSWORD
+                    """
+                } catch (Exception e) {
+                    echo "Deployment to Nexus failed: ${e.message}"
+                    throw e
                 }
             }
         }
+    }
+}
     }
 }
