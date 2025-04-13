@@ -23,96 +23,31 @@ import static org.mockito.Mockito.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @SpringBootTest
 public class DepartementServiceImplTest {
-
-/*
-    @Autowired
-    private DepartementServiceImpl departementService;
-
     @Mock
     private DepartementRepository departementRepository;
 
+    @InjectMocks
+    private DepartementServiceImpl departementService;
 
+    private Departement departement;
 
-    @Test
-    @Order(1)
-    public void testRetrieveAllDepartements() {
-        // Prépare des données fictives
-        Departement d1 = new Departement();
-        d1.setIdDepart(1);
-        d1.setNomDepart("Informatique");
-        Departement d2 = new Departement();
-        d2.setIdDepart(2);
-        d2.setNomDepart("Mathématiques");
-
-        // Simule le comportement du repository
-        when(departementRepository.findAll()).thenReturn(Arrays.asList(d1, d2));
-
-        // Exécute la méthode
-        List<Departement> departements = departementService.retrieveAllDepartements();
-
-        // Vérifications
-        assertEquals(2, departements.size());
-        assertTrue(departements.contains(d1));
-        assertTrue(departements.contains(d2));
-        verify(departementRepository, times(1)).findAll();
+    @BeforeEach
+    void setUp() {
+        // Initialisation des données mockées
+        departement = new Departement(1, "Informatique");
     }
 
     @Test
-    @Order(2)
-    public void testAddDepartement() {
-        // Prépare une entité fictive
-        Departement d = new Departement();
-        d.setIdDepart(1);
-        d.setNomDepart("Informatique");
+    void testAddDepartement() {
+        // Arrange
+        when(departementRepository.save(any(Departement.class))).thenReturn(departement);
 
-        // Simule le comportement
-        when(departementRepository.save(d)).thenReturn(d);
+        // Act
+        Departement result = departementService.addDepartement(departement);
 
-        // Exécute la méthode
-        Departement result = departementService.addDepartement(d);
-
-        // Vérifications
+        // Assert
         assertNotNull(result);
-        assertEquals(d.getNomDepart(), result.getNomDepart());
-        verify(departementRepository, times(1)).save(d);
+        assertEquals("Informatique", result.getNomDepart());
+        verify(departementRepository, times(1)).save(any(Departement.class));
     }
-
-    @Test
-    @Order(3)
-    public void testRetrieveDepartement() {
-        // Prépare une entité fictive
-        Departement d = new Departement();
-        d.setIdDepart(1);
-        d.setNomDepart("Informatique");
-
-        // Simule le comportement
-        when(departementRepository.findById(1)).thenReturn(Optional.of(d));
-
-        // Exécute la méthode
-        Departement result = departementService.retrieveDepartement(1);
-
-        // Vérifications
-        assertNotNull(result);
-        assertEquals(d.getNomDepart(), result.getNomDepart());
-        verify(departementRepository, times(1)).findById(1);
-    }
-
-    @Test
-    @Order(4)
-    public void testDeleteDepartement() {
-        // Prépare une entité fictive
-        Departement d = new Departement();
-        d.setIdDepart(1);
-        d.setNomDepart("Informatique");
-
-        // Simule le comportement
-        when(departementRepository.findById(1)).thenReturn(Optional.of(d));
-
-        // Exécute la méthode
-        departementService.deleteDepartement(1);
-
-        // Vérifications
-        verify(departementRepository, times(1)).findById(1);
-        verify(departementRepository, times(1)).delete(d);
-    }*/
 }
