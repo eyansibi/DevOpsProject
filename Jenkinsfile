@@ -6,7 +6,9 @@ pipeline {
         M2_HOME = tool name: 'M2_HOME', type: 'maven'
         PATH = "${JAVA_HOME}/bin:${M2_HOME}/bin:${PATH}"
     }
-    stage('Start MySQL') {
+   
+    stages {
+         stage('Start MySQL') {
     steps {
         echo 'Starting MySQL Docker container...'
         sh '''
@@ -25,8 +27,6 @@ pipeline {
         }
     }
 }
-
-    stages {
         stage('GIT') {
             steps {
                 git branch: 'main', url: 'https://github.com/eyansibi/DevOpsProject.git'
