@@ -4,6 +4,8 @@ pipeline {
         JAVA_HOME = tool name: 'JAVA_HOME', type: 'jdk'
         M2_HOME = tool name: 'M2_HOME', type: 'maven'
         PATH = "${JAVA_HOME}/bin:${M2_HOME}/bin:${PATH}"
+       NEXUS_REPO_URL = "http://127.0.0.1:8081/repository/maven-releases/"
+        MAVEN_SETTINGS = "/usr/share/maven/conf/settings.xml"
     }
     stages {
         stage('Git Checkout') {
@@ -43,6 +45,20 @@ pipeline {
                         mvn clean compile
                         mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
                     '''
+                }
+            }
+        }
+        stage('Deploy to Nexus') {
+            steps {
+                script {
+                    try {
+                        sh '''
+                            mvn deploy --settings ${MAVEN_SETTINGS} -DskipTests
+                        '''
+                    } catch (Exception e) {
+                        echo "Deployment to Nexus failed: ${e.message}"
+                        throw e 
+                    }
                 }
             }
         }
