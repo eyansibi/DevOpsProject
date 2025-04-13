@@ -55,21 +55,20 @@ pipeline {
                                                       usernameVariable: 'NEXUS_USERNAME', 
                                                       passwordVariable: 'NEXUS_PASSWORD')]) {
                         try {
+                            echo "Déploiement vers Nexus avec l'utilisateur: ${NEXUS_USERNAME}"
+
                             sh """
                                 mvn deploy \
                                     --settings ${MAVEN_SETTINGS} \
                                     -DskipTests \
-                                    -Dnexus.username=$NEXUS_USERNAME \
-                                    -Dnexus.password=$NEXUS_PASSWORD \
-                                    -DaltDeploymentRepository=nexus-releases::default::${NEXUS_REPO_URL}
+                                    -DaltDeploymentRepository=nexus-snapshots::default::${NEXUS_REPO_URL}
                             """
                         } catch (Exception e) {
-                            echo "Deployment to Nexus failed: ${e.message}"
-                            throw e
+                            echo "Échec du déploiement vers Nexus: ${e.message}"
+                            error "Le déploiement a échoué. Vérifiez les credentials, settings.xml et la configuration Nexus."
                         }
                     }
                 }
             }
-        }
     }
 }
