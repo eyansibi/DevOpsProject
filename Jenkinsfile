@@ -28,27 +28,7 @@ pipeline {
                 sh 'mvn clean compile'
             }
         }
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-        stage('Install') {
-            steps {
-                sh 'mvn install'
-            }
-        }
-        stage('MVN SONARQUBE') {
-            steps {
-                withSonarQubeEnv('sq') {
-                    sh '''
-                        mvn clean compile
-                        mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
-                    '''
-                }
-            }
-        }
-        stage('Deploy to Nexus') {
+          stage('Deploy to Nexus') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials-id', 
@@ -71,5 +51,26 @@ pipeline {
                 }
             }
     }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Install') {
+            steps {
+                sh 'mvn install'
+            }
+        }
+        stage('MVN SONARQUBE') {
+            steps {
+                withSonarQubeEnv('sq') {
+                    sh '''
+                        mvn clean compile
+                        mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
+                    '''
+                }
+            }
+        }
+      
     }
 }
