@@ -1,75 +1,40 @@
 pipeline {
     agent any
-
-    environment {
+   environment {
         JAVA_HOME = tool name: 'JAVA_HOME', type: 'jdk'
         M2_HOME = tool name: 'M2_HOME', type: 'maven'
         PATH = "${JAVA_HOME}/bin:${M2_HOME}/bin:${PATH}"
     }
-
     stages {
-        stage('Start MySQL') {
-    steps {
-        echo '🔧 Starting MySQL Docker container...'
-        sh '''
-            echo "🧹 Checking for existing MySQL container..."
-            docker rm -f mysql-test || true
-
-            docker run -d --name mysql-test \
-              -e MYSQL_ROOT_PASSWORD=root \
-              -e MYSQL_DATABASE=kaddem \
-              -p 3306:3306 \
-              mysql:8
-
-            echo "⏳ Waiting for MySQL to be ready..."
-            for i in {1..20}; do
-              docker exec mysql-test mysqladmin ping -h localhost -uroot -proot --silent && break
-              echo "⌛ Still waiting..."
-              sleep 2
-            done
-        '''
-    }
-}
-
-        stage('Clone Repository') {
+        stage('Git Checkout') {
             steps {
-                echo '📥 Cloning repository...'
-                git branch: 'main', url: 'https://github.com/eyansibi/DevOpsProject.git'
+                git branch: 'main', url: 'https://github.com/eyansibi/DevOpsProject.git' // Replace with your repository URL and branch
             }
         }
-
-        stage('Maven Compile') {
+        stage('Java Version') {
             steps {
-                echo '⚙️ Compiling project...'
-                sh 'mvn clean compile'
+                sh 'java -version' // Verify Java setup
             }
         }
-
-        stage('Maven Test') {
+        stage('MAVEN') {
             steps {
-                echo '🧪 Running unit tests...'
-                sh 'mvn test'
+                sh 'mvn --version' // Verify Maven setup
             }
         }
-
-        stage('Maven Install') {
+        stage('Compile') {
             steps {
-                echo '📦 Installing project...'
-                sh 'mvn install'
+                sh 'mvn clean compile' // Compile the project
             }
         }
-    }
-
-    post {
-        always {
-            echo '🧹 Cleaning up Docker container...'
-            sh 'docker rm -f mysql-test || true'
+        stage('Test') {
+            steps {
+                sh 'mvn test' // Run tests
+            }
         }
-        success {
-            echo '✅ Build succeeded!'
-        }
-        failure {
-            echo '❌ Build failed.'
+        stage('Install') {
+            steps {
+                sh 'mvn install' // Install the project
+            }
         }
     }
 }
