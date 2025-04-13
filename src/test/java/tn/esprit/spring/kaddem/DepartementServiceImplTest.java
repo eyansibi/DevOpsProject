@@ -1,9 +1,6 @@
 package tn.esprit.spring.kaddem;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -38,12 +35,13 @@ public class DepartementServiceImplTest {
     @BeforeEach
     void setUp() {
         departement = new Departement(1, "Informatique");
-        etudiant = new Etudiant(1, "John", "Doe", null); // Exemple avec des valeurs minimales
-        etudiant.setDepartement(departement); // Associer l'étudiant au département
-        departement.setEtudiants(new HashSet<>(Arrays.asList(etudiant))); // Initialiser la collection
+        etudiant = new Etudiant(1, "John", "Doe", null);
+        etudiant.setDepartement(departement);
+        departement.setEtudiants(new HashSet<>(Arrays.asList(etudiant)));
     }
 
     @Test
+    @Order(1)
     void testRetrieveAllDepartements() {
         // Arrange
         List<Departement> departementList = Arrays.asList(
@@ -62,6 +60,7 @@ public class DepartementServiceImplTest {
     }
 
     @Test
+    @Order(2)
     void testAddDepartement() {
         // Arrange
         when(departementRepository.save(any(Departement.class))).thenReturn(departement);
@@ -76,6 +75,18 @@ public class DepartementServiceImplTest {
     }
 
     @Test
+    @Order(3)
+    void testAddDepartementWithNullShouldFail() {
+        // Arrange
+        when(departementRepository.save(null)).thenThrow(new IllegalArgumentException("Departement cannot be null"));
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> departementService.addDepartement(null));
+        verify(departementRepository, never()).save(any(Departement.class));
+    }
+
+    @Test
+    @Order(4)
     void testRetrieveDepartement() {
         // Arrange
         when(departementRepository.findById(1)).thenReturn(Optional.of(departement));
@@ -90,6 +101,34 @@ public class DepartementServiceImplTest {
     }
 
     @Test
+    @Order(5)
+    void testRetrieveDepartementWithInvalidId() {
+        // Arrange
+        when(departementRepository.findById(999)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> departementService.retrieveDepartement(999));
+        verify(departementRepository, times(1)).findById(999);
+    }
+
+    @Test
+    @Order(6)
+    void testUpdateDepartement() {
+        // Arrange
+        departement.setNomDepart("Informatique Modifié");
+        when(departementRepository.save(any(Departement.class))).thenReturn(departement);
+
+        // Act
+        Departement result = departementService.updateDepartement(departement);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Informatique Modifié", result.getNomDepart());
+        verify(departementRepository, times(1)).save(any(Departement.class));
+    }
+
+    @Test
+    @Order(7)
     void testDeleteDepartement() {
         // Arrange
         when(departementRepository.findById(1)).thenReturn(Optional.of(departement));
@@ -104,6 +143,19 @@ public class DepartementServiceImplTest {
     }
 
     @Test
+    @Order(8)
+    void testDeleteDepartementWithInvalidId() {
+        // Arrange
+        when(departementRepository.findById(999)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> departementService.deleteDepartement(999));
+        verify(departementRepository, times(1)).findById(999);
+        verify(departementRepository, never()).delete(any(Departement.class));
+    }
+
+    @Test
+    @Order(9)
     void testRetrieveEtudiantsByDepartement() {
         // Arrange
         Set<Etudiant> etudiants = new HashSet<>(Arrays.asList(etudiant));
