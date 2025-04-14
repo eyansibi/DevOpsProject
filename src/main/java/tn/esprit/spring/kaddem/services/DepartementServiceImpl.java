@@ -1,42 +1,59 @@
 package tn.esprit.spring.kaddem.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
+import tn.esprit.spring.kaddem.dto.DepartementDTO;
 import tn.esprit.spring.kaddem.entities.Departement;
-import tn.esprit.spring.kaddem.entities.Equipe;
-import tn.esprit.spring.kaddem.repositories.ContratRepository;
 import tn.esprit.spring.kaddem.repositories.DepartementRepository;
 
 import java.util.List;
 
-@Slf4j
-
 @Service
-public class DepartementServiceImpl implements IDepartementService{
-	@Autowired
+@AllArgsConstructor
+public class DepartementServiceImpl implements IDepartementService {
+
+	private static final String DEPARTEMENT_NOT_FOUND_MESSAGE = "Departement not found with id: ";
+
 	DepartementRepository departementRepository;
-	public List<Departement> retrieveAllDepartements(){
+
+	@Override
+	public List<Departement> retrieveAllDepartements() {
 		return (List<Departement>) departementRepository.findAll();
 	}
 
-	public Departement addDepartement (Departement d){
-		return departementRepository.save(d);
+	@Override
+	public Departement retrieveDepartement(Integer id) {
+		return departementRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException(DEPARTEMENT_NOT_FOUND_MESSAGE + id));
 	}
 
-	public   Departement updateDepartement (Departement d){
-		return departementRepository.save(d);
+	@Override
+	public DepartementDTO addDepartement(DepartementDTO d) {
+		if (d == null) {
+			throw new IllegalArgumentException("DepartementDTO cannot be null");
+		}
+		Departement departement = new Departement();
+		departement.setNomDepart(d.getNomDepart());
+		Departement saved = departementRepository.save(departement);
+		return new DepartementDTO(saved.getIdDepart(), saved.getNomDepart());
 	}
 
-	public  Departement retrieveDepartement (Integer idDepart){
-		return departementRepository.findById(idDepart).get();
+	@Override
+	public void deleteDepartement(Integer id) {
+		Departement departement = departementRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException(DEPARTEMENT_NOT_FOUND_MESSAGE + id));
+		departementRepository.delete(departement);
 	}
-	public  void deleteDepartement(Integer idDepartement){
-		Departement d=retrieveDepartement(idDepartement);
-		departementRepository.delete(d);
+
+	@Override
+	public DepartementDTO updateDepartement(DepartementDTO d) {
+		if (d == null) {
+			throw new IllegalArgumentException("DepartementDTO cannot be null");
+		}
+		Departement departement = departementRepository.findById(d.getIdDepart())
+				.orElseThrow(() -> new RuntimeException(DEPARTEMENT_NOT_FOUND_MESSAGE + d.getIdDepart()));
+		departement.setNomDepart(d.getNomDepart());
+		Departement updated = departementRepository.save(departement);
+		return new DepartementDTO(updated.getIdDepart(), updated.getNomDepart());
 	}
-
-
-
 }
