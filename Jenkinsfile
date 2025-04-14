@@ -33,6 +33,26 @@ pipeline {
                 sh 'mvn clean compile'
             }
         }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Install') {
+            steps {
+                sh 'mvn install'
+            }
+        }
+        stage('MVN SONARQUBE') {
+            steps {
+                withSonarQubeEnv('sq') {
+                    sh '''
+                        mvn clean compile
+                        mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
+                    '''
+                }
+            }
+        }
         // stage('Deploy to Nexus') {
         //     steps {
         //         script {
@@ -52,28 +72,6 @@ pipeline {
         //         }
         //     }
         // }
-        
-        // stage('Test') {
-        //     steps {
-        //         sh 'mvn test'
-        //     }
-        // }
-        stage('Install') {
-            steps {
-                sh 'mvn install'
-            }
-        }
-        // stage('MVN SONARQUBE') {
-        //     steps {
-        //         withSonarQubeEnv('sq') {
-        //             sh '''
-        //                 mvn clean compile
-        //                 mvn sonar:sonar -DskipTests -Dsonar.java.binaries=target/classes
-        //             '''
-        //         }
-        //     }
-        // }
-
         stage('Docker Login') {
             steps {
                 sh 'echo "$DOCKERHUB_CREDENTIALS_PSW" | docker login -u "$DOCKERHUB_CREDENTIALS_USR" --password-stdin'
