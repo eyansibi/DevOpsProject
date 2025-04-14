@@ -110,7 +110,8 @@ pipeline {
                 sh 'docker system prune -f'
             }
         }
-    }*/
+        */
+    }
     post {
         failure {
             echo "Le pipeline a échoué. Vérifiez les logs pour plus de détails."
