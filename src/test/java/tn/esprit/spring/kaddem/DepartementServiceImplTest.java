@@ -52,7 +52,6 @@ class DepartementServiceUnitTest {
     void testGetDepartementById() {
         when(departementRepository.findById(1)).thenReturn(Optional.of(departement));
         Departement departementById = departementService.retrieveDepartement(1);
-        assertNotEquals(null, departementById);
         assertEquals("Informatique", departementById.getNomDepart());
     }
 
@@ -67,25 +66,10 @@ class DepartementServiceUnitTest {
 
     @Test
     void testCreateDepartement() {
-        // Mock data
         Departement savedDepartement = new Departement(1, "Informatique");
         when(departementRepository.save(any(Departement.class))).thenReturn(savedDepartement);
-
-        // Perform the test
         DepartementDTO result = departementService.addDepartement(departementDTO);
-
-        // Verify the interactions
-        verify(departementRepository, times(1)).save(any(Departement.class));
-        ArgumentCaptor<Departement> departementArgumentCaptor = ArgumentCaptor.forClass(Departement.class);
-        verify(departementRepository).save(departementArgumentCaptor.capture());
-        Departement departementCreated = departementArgumentCaptor.getValue();
-
-        // Assertions on the captured object (before save)
-        assertEquals("Informatique", departementCreated.getNomDepart());
-
-        // Assertions on the returned DTO (after save)
-        assertEquals(1, result.getIdDepart());
-        assertEquals("Informatique", result.getNomDepart());
+        verifyAndCaptureDepartement("Informatique", result);
     }
 
     @Test
@@ -99,28 +83,13 @@ class DepartementServiceUnitTest {
 
     @Test
     void testUpdateDepartement() {
-        // Mock data
         DepartementDTO updatedDTO = new DepartementDTO(1, "Informatique Modifié");
         Departement existingDepartement = new Departement(1, "Informatique");
         Departement updatedDepartement = new Departement(1, "Informatique Modifié");
         when(departementRepository.findById(1)).thenReturn(Optional.of(existingDepartement));
         when(departementRepository.save(any(Departement.class))).thenReturn(updatedDepartement);
-
-        // Perform the test
         DepartementDTO result = departementService.updateDepartement(updatedDTO);
-
-        // Verify the interactions
-        verify(departementRepository, times(1)).save(any(Departement.class));
-        ArgumentCaptor<Departement> departementArgumentCaptor = ArgumentCaptor.forClass(Departement.class);
-        verify(departementRepository).save(departementArgumentCaptor.capture());
-        Departement departementUpdated = departementArgumentCaptor.getValue();
-
-        // Assertions on the captured object (before save)
-        assertEquals("Informatique Modifié", departementUpdated.getNomDepart());
-
-        // Assertions on the returned DTO (after save)
-        assertEquals(1, result.getIdDepart());
-        assertEquals("Informatique Modifié", result.getNomDepart());
+        verifyAndCaptureDepartement("Informatique Modifié", result);
     }
 
     @Test
@@ -151,7 +120,6 @@ class DepartementServiceUnitTest {
         ArgumentCaptor<Departement> departementArgumentCaptor = ArgumentCaptor.forClass(Departement.class);
         verify(departementRepository).delete(departementArgumentCaptor.capture());
         Departement deletedDepartement = departementArgumentCaptor.getValue();
-        assertNotNull(deletedDepartement);
         assertEquals(1, deletedDepartement.getIdDepart());
     }
 
@@ -163,5 +131,15 @@ class DepartementServiceUnitTest {
         });
         assertTrue(exception.getMessage().contains("Departement not found with id: 999"));
         verify(departementRepository, never()).delete(any(Departement.class));
+    }
+
+    private void verifyAndCaptureDepartement(String expectedNomDepart, DepartementDTO result) {
+        verify(departementRepository, times(1)).save(any(Departement.class));
+        ArgumentCaptor<Departement> departementArgumentCaptor = ArgumentCaptor.forClass(Departement.class);
+        verify(departementRepository).save(departementArgumentCaptor.capture());
+        Departement departementCaptured = departementArgumentCaptor.getValue();
+        assertEquals(expectedNomDepart, departementCaptured.getNomDepart());
+        assertEquals(1, result.getIdDepart());
+        assertEquals(expectedNomDepart, result.getNomDepart());
     }
 }
