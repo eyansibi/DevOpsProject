@@ -10,18 +10,67 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - kaddem_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
-    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}  # Utilisation de la variable dynamique du pipeline Jenkins
+    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}  # Par exemple, eyansibi/eyansibidevops4twin2
     depends_on:
       - db
     ports:
       - "8089:8089"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/kaddemdb
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/kaddemdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: null
+      SPRING_DATASOURCE_PASSWORD:   
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    stdin_open: true
+    tty: true
+    networks:
+      - kaddem_network
+    container_name: kaddem-backend
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:latest
+    ports:
+      - "9104:9104"
+    environment:
+      - DATA_SOURCE_NAME="root:root@(db:3306)/kaddemdb"
+    depends_on:
+      - db
+    networks:
+      - kaddem_network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - kaddem_network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - kaddem_network
+    restart: unless-stopped
 
 volumes:
   mysql_data:
+
+networks:
+  kaddem_network:
+    driver: bridge
