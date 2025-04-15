@@ -13,4 +13,4 @@ scrape_configs:
   - job_name: 'prometheus'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['kaddem-prometheus:9090']  # Ajout de la cible pour kaddem-prometheus
+      - targets: ['kaddem-prometheus:9090']
