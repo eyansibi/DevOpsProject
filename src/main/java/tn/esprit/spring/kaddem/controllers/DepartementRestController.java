@@ -19,11 +19,11 @@ public class DepartementRestController {
 		this.departementService = departementService;
 	}
 
-	@GetMapping("/all")
+	/*@GetMapping("/all")
 	public ResponseEntity<List<Departement>> getDepartements() {
 		List<Departement> listDepartements = departementService.retrieveAllDepartements();
 		return new ResponseEntity<>(listDepartements, HttpStatus.OK);
-	}
+	}*/
 
 	@GetMapping("/retrieve/{id}")
 	public ResponseEntity<Departement> retrieveDepartement(@PathVariable("id") Integer id) {
