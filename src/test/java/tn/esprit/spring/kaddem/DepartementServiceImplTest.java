@@ -43,6 +43,19 @@ class DepartementServiceImplTest {
     }
 
     @Test
+    void testRetrieveAllDepartementsEmptyList() {
+        // Arrange
+        when(departementRepository.findAll()).thenReturn(Arrays.asList());
+
+        // Act
+        List<Departement> result = departementService.retrieveAllDepartements();
+
+        // Assert
+        assertTrue(result.isEmpty());
+        verify(departementRepository, times(1)).findAll();
+    }
+
+    @Test
     void testAddDepartement() {
         // Arrange
         Departement savedDepartement = new Departement(1, "Informatique");
