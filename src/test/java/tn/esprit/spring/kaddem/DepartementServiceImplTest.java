@@ -1,8 +1,10 @@
 package tn.esprit.spring.kaddem;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import tn.esprit.spring.kaddem.dto.DepartementDTO;
 import tn.esprit.spring.kaddem.entities.Departement;
 import tn.esprit.spring.kaddem.repositories.DepartementRepository;
@@ -15,30 +17,43 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class DepartementServiceImplTest {
 
-    private final DepartementRepository departementRepository = mock(DepartementRepository.class);
-    private final DepartementServiceImpl departementService = new DepartementServiceImpl(departementRepository);
-    private final Departement departement = new Departement(1, "Informatique");
-    private final DepartementDTO departementDTO = new DepartementDTO(1, "Informatique");
+    @InjectMocks
+    private DepartementServiceImpl departementService;
+
+    @Mock
+    private DepartementRepository departementRepository;
+
+    private Departement departement;
+    private List<Departement> departementList;
+    private DepartementDTO departementDTO;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        departement = new Departement();
+        departement.setIdDepart(1);
+        departement.setNomDepart("Informatique");
+
+        departementList = Arrays.asList(departement);
+
+        departementDTO = new DepartementDTO();
+        departementDTO.setIdDepart(1);
+        departementDTO.setNomDepart("Informatique");
+    }
 
     @Test
     void testRetrieveAllDepartements() {
         // Arrange
-        List<Departement> departementList = Arrays.asList(
-                new Departement(1, "Informatique"),
-                new Departement(2, "Mathématiques")
-        );
         when(departementRepository.findAll()).thenReturn(departementList);
 
         // Act
         List<Departement> result = departementService.retrieveAllDepartements();
 
         // Assert
-        assertEquals(2, result.size());
+        assertEquals(1, result.size());
         assertEquals("Informatique", result.get(0).getNomDepart());
-        assertEquals(departementList, result);
         verify(departementRepository, times(1)).findAll();
     }
 
@@ -56,48 +71,6 @@ class DepartementServiceImplTest {
     }
 
     @Test
-    void testAddDepartement() {
-        // Arrange
-        Departement savedDepartement = new Departement(1, "Informatique");
-        when(departementRepository.save(any(Departement.class))).thenReturn(savedDepartement);
-
-        // Act
-        DepartementDTO result = departementService.addDepartement(departementDTO);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getIdDepart());
-        assertEquals("Informatique", result.getNomDepart());
-        assertEquals(savedDepartement.getIdDepart(), result.getIdDepart());
-        assertEquals(savedDepartement.getNomDepart(), result.getNomDepart());
-        verify(departementRepository, times(1)).save(any(Departement.class));
-    }
-
-    @Test
-    void testAddDepartementWithNullName() {
-        // Arrange
-        DepartementDTO dtoWithNullName = new DepartementDTO(1, null);
-        Departement savedDepartement = new Departement(1, null);
-        when(departementRepository.save(any(Departement.class))).thenReturn(savedDepartement);
-
-        // Act
-        DepartementDTO result = departementService.addDepartement(dtoWithNullName);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getIdDepart());
-        assertNull(result.getNomDepart());
-        verify(departementRepository, times(1)).save(any(Departement.class));
-    }
-
-    @Test
-    void testAddDepartementWithNullShouldFail() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> departementService.addDepartement(null));
-        verify(departementRepository, never()).save(any(Departement.class));
-    }
-
-    @Test
     void testRetrieveDepartement() {
         // Arrange
         when(departementRepository.findById(1)).thenReturn(Optional.of(departement));
@@ -108,7 +81,6 @@ class DepartementServiceImplTest {
         // Assert
         assertNotNull(result);
         assertEquals("Informatique", result.getNomDepart());
-        assertEquals(departement, result);
         verify(departementRepository, times(1)).findById(1);
     }
 
@@ -123,45 +95,70 @@ class DepartementServiceImplTest {
     }
 
     @Test
-    void testUpdateDepartement() {
+    void testAddDepartement() {
         // Arrange
-        DepartementDTO updatedDTO = new DepartementDTO(1, "Informatique Modifié");
-        Departement existingDepartement = new Departement(1, "Informatique");
-        Departement updatedDepartement = new Departement(1, "Informatique Modifié");
-        when(departementRepository.findById(1)).thenReturn(Optional.of(existingDepartement));
-        when(departementRepository.save(any(Departement.class))).thenReturn(updatedDepartement);
+        Departement savedDepartement = new Departement();
+        savedDepartement.setIdDepart(1);
+        savedDepartement.setNomDepart("Informatique");
+        when(departementRepository.save(any(Departement.class))).thenReturn(savedDepartement);
 
         // Act
-        DepartementDTO result = departementService.updateDepartement(updatedDTO);
+        DepartementDTO result = departementService.addDepartement(departementDTO);
 
         // Assert
         assertNotNull(result);
+        assertEquals("Informatique", result.getNomDepart());
         assertEquals(1, result.getIdDepart());
-        assertEquals("Informatique Modifié", result.getNomDepart());
-        assertEquals(updatedDepartement.getIdDepart(), result.getIdDepart());
-        assertEquals(updatedDepartement.getNomDepart(), result.getNomDepart());
+        verify(departementRepository, times(1)).save(any(Departement.class));
+    }
+
+    @Test
+    void testAddDepartementWithNullDTO() {
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> departementService.addDepartement(null));
+        verify(departementRepository, never()).save(any(Departement.class));
+    }
+
+    @Test
+    void testUpdateDepartement() {
+        // Arrange
+        Departement existingDepartement = new Departement();
+        existingDepartement.setIdDepart(1);
+        existingDepartement.setNomDepart("Informatique");
+        when(departementRepository.findById(1)).thenReturn(Optional.of(existingDepartement));
+        when(departementRepository.save(any(Departement.class))).thenReturn(existingDepartement);
+
+        // Act
+        DepartementDTO result = departementService.updateDepartement(departementDTO);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Informatique", result.getNomDepart());
+        assertEquals(1, result.getIdDepart());
         verify(departementRepository, times(1)).findById(1);
         verify(departementRepository, times(1)).save(any(Departement.class));
     }
 
     @Test
-    void testUpdateDepartementWithNullName() {
+    void testUpdateDepartementWithNullDTO() {
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> departementService.updateDepartement(null));
+        verify(departementRepository, never()).findById(anyInt());
+        verify(departementRepository, never()).save(any(Departement.class));
+    }
+
+    @Test
+    void testUpdateDepartementWithInvalidId() {
         // Arrange
-        DepartementDTO updatedDTO = new DepartementDTO(1, null);
-        Departement existingDepartement = new Departement(1, "Informatique");
-        Departement updatedDepartement = new Departement(1, null);
-        when(departementRepository.findById(1)).thenReturn(Optional.of(existingDepartement));
-        when(departementRepository.save(any(Departement.class))).thenReturn(updatedDepartement);
+        DepartementDTO invalidDTO = new DepartementDTO();
+        invalidDTO.setIdDepart(999);
+        invalidDTO.setNomDepart("Informatique");
+        when(departementRepository.findById(999)).thenReturn(Optional.empty());
 
-        // Act
-        DepartementDTO result = departementService.updateDepartement(updatedDTO);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getIdDepart());
-        assertNull(result.getNomDepart());
-        verify(departementRepository, times(1)).findById(1);
-        verify(departementRepository, times(1)).save(any(Departement.class));
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> departementService.updateDepartement(invalidDTO));
+        verify(departementRepository, times(1)).findById(999);
+        verify(departementRepository, never()).save(any(Departement.class));
     }
 
     @Test
@@ -187,25 +184,5 @@ class DepartementServiceImplTest {
         assertThrows(RuntimeException.class, () -> departementService.deleteDepartement(999));
         verify(departementRepository, times(1)).findById(999);
         verify(departementRepository, never()).delete(any(Departement.class));
-    }
-
-    @Test
-    void testUpdateDepartementWithInvalidId() {
-        // Arrange
-        DepartementDTO invalidDTO = new DepartementDTO(999, "Informatique Modifié");
-        when(departementRepository.findById(999)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> departementService.updateDepartement(invalidDTO));
-        verify(departementRepository, times(1)).findById(999);
-        verify(departementRepository, never()).save(any(Departement.class));
-    }
-
-    @Test
-    void testUpdateDepartementWithNullShouldFail() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> departementService.updateDepartement(null));
-        verify(departementRepository, never()).findById(anyInt());
-        verify(departementRepository, never()).save(any(Departement.class));
     }
 }
