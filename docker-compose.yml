@@ -1,15 +1,16 @@
 version: "3.8"
 
 services:
-  db:
-    image: mysql:5.7
+  mysqldb:
+    image: mysql:5.7  # Vous utilisez MySQL 5.7 dans votre projet
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: kaddemdb
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=kaddemdb
     ports:
-      - "3307:3306"
+      - "3307:3306"  # Gardez 3307 pour éviter les conflits avec d'autres instances MySQL
     volumes:
-      - mysql_data:/var/lib/mysql
+      - db:/var/lib/mysql
     networks:
       - kaddem_network
     healthcheck:
@@ -19,16 +20,18 @@ services:
       retries: 5
 
   backend:
-    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}  # Par exemple, eyansibi/eyansibidevops4twin2
     depends_on:
-      - db
+      mysqldb:
+        condition: service_healthy
+    image: eyansibi/eyansibidevops4twin2:${BACKEND_TAG:-latest}  # Utilisez votre image
+    restart: on-failure
     ports:
-      - "8089:8089"
+      - "8089:8089"  # Port adapté à votre projet
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/kaddemdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD:   
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/kaddemdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&max_allowed_packet=15728640
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     stdin_open: true
     tty: true
     networks:
@@ -40,36 +43,37 @@ services:
     ports:
       - "9104:9104"
     environment:
-      - DATA_SOURCE_NAME="root@(db:3306)/kaddemdb"
+      - DATA_SOURCE_NAME="root:root@(mysqldb:3306)/kaddemdb"
     depends_on:
-      - db
+      mysqldb:
+        condition: service_healthy
     networks:
       - kaddem_network
     restart: unless-stopped
 
- prometheus:
-  image: prom/prometheus:latest
-  container_name: kaddem-prometheus  # Nouveau nom pour éviter le conflit
-  ports:
-    - "9090:9090"
-  volumes:
-    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  networks:
-    - kaddem_network
-  restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kaddem-prometheus  # Nom unique pour éviter les conflits
+    ports:
+      - "9091:9090"  # Port modifié pour éviter le conflit avec l'existant (9090)
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - kaddem_network
+    restart: unless-stopped
 
- grafana:
-   image: grafana/grafana:latest
-   ports:
-     - "3001:3000"  # Mappe le port externe 3001 au port interne 3000
-   environment:
-     - GF_SECURITY_ADMIN_PASSWORD=admin
-   networks:
-     - kaddem_network
-   restart: unless-stopped
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"  # Port modifié pour éviter le conflit avec l'existant (3000)
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - kaddem_network
+    restart: unless-stopped
 
 volumes:
-  mysql_data:
+  db:
 
 networks:
   kaddem_network:
