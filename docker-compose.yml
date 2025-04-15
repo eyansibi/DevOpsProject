@@ -40,33 +40,33 @@ services:
     ports:
       - "9104:9104"
     environment:
-      - DATA_SOURCE_NAME="root:root@(db:3306)/kaddemdb"
+      - DATA_SOURCE_NAME="root@(db:3306)/kaddemdb"
     depends_on:
       - db
     networks:
       - kaddem_network
     restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - kaddem_network
-    restart: unless-stopped
+ prometheus:
+  image: prom/prometheus:latest
+  container_name: kaddem-prometheus  # Nouveau nom pour éviter le conflit
+  ports:
+    - "9090:9090"
+  volumes:
+    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  networks:
+    - kaddem_network
+  restart: unless-stopped
 
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      - kaddem_network
-    restart: unless-stopped
+ grafana:
+   image: grafana/grafana:latest
+   ports:
+     - "3001:3000"  # Mappe le port externe 3001 au port interne 3000
+   environment:
+     - GF_SECURITY_ADMIN_PASSWORD=admin
+   networks:
+     - kaddem_network
+   restart: unless-stopped
 
 volumes:
   mysql_data:
