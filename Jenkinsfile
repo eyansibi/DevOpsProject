@@ -117,7 +117,19 @@ pipeline {
             echo "Le pipeline a échoué. Vérifiez les logs pour plus de détails."
         }
         success {
-            echo "Le pipeline a réussi !"
+           echo "Le pipeline a réussi !"
+            mail to: 'eyansibi2002@gmail.com', // Remplacez par l'adresse email du destinataire
+                 subject: "Succès du pipeline Jenkins - Build #${BUILD_NUMBER}",
+                 body: """
+                 Le pipeline a réussi pour le projet DevOpsProject.
+
+                 **Détails :**
+                 - **Build Number** : ${BUILD_NUMBER}
+                 - **Status** : Succès
+                 - **Logs** : Consultez les détails sur ${BUILD_URL}
+
+                 Tout s'est bien passé !
+                 """
         }
     }
 }
