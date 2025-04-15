@@ -9,6 +9,7 @@ import tn.esprit.spring.kaddem.services.IDepartementService;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/departement")
 public class DepartementRestController {
@@ -19,11 +20,11 @@ public class DepartementRestController {
 		this.departementService = departementService;
 	}
 
-	/*@GetMapping("/all")
+	@GetMapping("/all")
 	public ResponseEntity<List<Departement>> getDepartements() {
 		List<Departement> listDepartements = departementService.retrieveAllDepartements();
 		return new ResponseEntity<>(listDepartements, HttpStatus.OK);
-	}*/
+	}
 
 	@GetMapping("/retrieve/{id}")
 	public ResponseEntity<Departement> retrieveDepartement(@PathVariable("id") Integer id) {
