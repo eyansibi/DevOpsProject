@@ -117,7 +117,7 @@ pipeline {
             echo "Le pipeline a échoué. Vérifiez les logs pour plus de détails."
             script {
                 try {
-                    mail to: 'eyansib.02@icloud.com',
+                    mail to: 'eyansibi2002@gmail.com',
                          subject: "Échec du pipeline Jenkins - Build #${BUILD_NUMBER}",
                          body: """
                          Le pipeline a échoué pour le projet DevOpsProject.
@@ -138,7 +138,7 @@ pipeline {
             echo "Le pipeline a réussi !"
             script {
                 try {
-                    mail to: 'eyansib.02@icloud.com',
+                    mail to: 'eyansibi2002@gmail.com',
                          subject: "Succès du pipeline Jenkins - Build #${BUILD_NUMBER}",
                          body: """
                          Le pipeline a réussi pour le projet DevOpsProject.
