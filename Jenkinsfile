@@ -112,24 +112,48 @@ pipeline {
         }
         */
     }
-    post {
+     post {
         failure {
             echo "Le pipeline a échoué. Vérifiez les logs pour plus de détails."
+            script {
+                try {
+                    mail to: 'eyansib.02@icloud.com',
+                         subject: "Échec du pipeline Jenkins - Build #${BUILD_NUMBER}",
+                         body: """
+                         Le pipeline a échoué pour le projet DevOpsProject.
+
+                         **Détails :**
+                         - **Build Number** : ${BUILD_NUMBER}
+                         - **Status** : Échec
+                         - **Logs** : Vérifiez les détails sur ${BUILD_URL}
+
+                         Vérifiez les logs pour identifier la cause de l'échec.
+                         """
+                } catch (Exception e) {
+                    echo "Échec de l'envoi de l'email (failure) : ${e.message}"
+                }
+            }
         }
         success {
-           echo "Le pipeline a réussi !"
-            mail to: 'eyansibi2002@gmail.com', // Remplacez par l'adresse email du destinataire
-                 subject: "Succès du pipeline Jenkins - Build #${BUILD_NUMBER}",
-                 body: """
-                 Le pipeline a réussi pour le projet DevOpsProject.
+            echo "Le pipeline a réussi !"
+            script {
+                try {
+                    mail to: 'eyansib.02@icloud.com',
+                         subject: "Succès du pipeline Jenkins - Build #${BUILD_NUMBER}",
+                         body: """
+                         Le pipeline a réussi pour le projet DevOpsProject.
 
-                 **Détails :**
-                 - **Build Number** : ${BUILD_NUMBER}
-                 - **Status** : Succès
-                 - **Logs** : Consultez les détails sur ${BUILD_URL}
+                         **Détails :**
+                         - **Build Number** : ${BUILD_NUMBER}
+                         - **Status** : Succès
+                         - **Logs** : Consultez les détails sur ${BUILD_URL}
 
-                 Tout s'est bien passé !
-                 """
+                         Tout s'est bien passé !
+                         """
+                } catch (Exception e) {
+                    echo "Échec de l'envoi de l'email (success) : ${e.message}"
+                }
+            }
         }
     }
 }
